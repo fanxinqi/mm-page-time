@@ -17,8 +17,8 @@
 
 - [x] 支持统计多页面应用
 - [x] 支持统计单页面应用
-  - [x]支持 hash router
-  - [x]支持 history router
+  - [x] 支持 hash router
+  - [x] 支持 history router
 - [x] 支持统计单页面应用
 - [x] 时长统计会去除浏览器最小化、睡眠、锁屏等无效时间
 
