@@ -4,7 +4,8 @@
 停留时长也可以侧面反映出网站的用户体验。平均访问时长越短，说明网站对用户的吸引力越差，可用内容信息越少。
 
 <div>
-  <img src="https://github.com/fanxinqi/mm-page-time/blob/main/doc/time-on-page.jpeg"  height="400" />
+  <img style="border-radius: 40px;
+    border: 0.5px solid brown;" src="https://github.com/fanxinqi/mm-page-time/blob/main/doc/time-on-page.jpeg"  height="400" />
 <div>
 
 ## 兼容性
