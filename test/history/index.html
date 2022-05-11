@@ -1,0 +1,59 @@
+<div id="app">
+  <ul>
+    <li><a data-href="/" href="#">home</a></li>
+    <li><a data-href="/about" href="#">about</a></li>
+    <li><a data-href="/topics" href="#">topics</a></li>
+  </ul>
+  <div id="content"></div>
+</div>
+<script src="router.js"></script>
+<script src="../../lib/index.js"></script>
+<script>
+  const MMTracer = MMTP.default;
+  const mmTracer = new MMTracer();
+
+  function getfriendTime(timestamp) {
+    return (
+      Math.floor(timestamp / 1000 / 60) +
+      "分" +
+      ((timestamp / 1000) % 60) +
+      "秒"
+    );
+  }
+  mmTracer.init();
+  mmTracer.on("pageLeave", function (pageRecord) {
+    // const diffTime = pageRecord.endTime - pageRecord.startTime;
+    console.log(pageRecord.duration);
+    console.log("页面停留时长", getfriendTime(pageRecord.duration));
+  });
+  const router = new Router();
+  router.init();
+  router.route("/", function () {
+    document.getElementById("content").innerHTML = "Home";
+  });
+  router.route("/about", function () {
+    document.getElementById("content").innerHTML = "About";
+  });
+  router.route("/topics", function () {
+    document.getElementById("content").innerHTML = "Topics";
+  });
+
+  //   window.addEventListener("load", function () {
+  //     window.localStorage.setItem("a-load", JSON.stringify("load"));
+  //   });
+  //   window.addEventListener("pageshow", function () {
+  //     console.log("pageshow");
+  //     window.localStorage.setItem("a-pageshow", JSON.stringify("pageshow"));
+  //   });
+  //   window.addEventListener("pagehide", function () {
+  //     console.log("pagehide");
+  //     window.localStorage.setItem("a-pagehide", JSON.stringify("pagehide"));
+  //   });
+
+  //   window.addEventListener("visibilitychange", function (event) {
+  //     window.localStorage.setItem(
+  //       document.visibilityState,
+  //       JSON.stringify(document.visibilityState)
+  //     );
+  //   });
+</script>

@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Document</title>
+  </head>
+  <body>
+    <div id="app">
+      <ul>
+        <li>
+          <a href="#/">home</a>
+        </li>
+        <li>
+          <a href="#/about">about</a>
+        </li>
+        <li>
+          <a href="#/topics">topics</a>
+        </li>
+      </ul>
+      <div id="content"></div>
+    </div>
+    <script src="../../lib/index.js"></script>
+    <script src="router.js"></script>
+    <script>
+      const MMTracer = MMTP.default;
+      const mmTracer = new MMTracer();
+
+      function getfriendTime(timestamp) {
+        return (
+          Math.floor(timestamp / 1000 / 60) +
+          "分" +
+          ((timestamp / 1000) % 60) +
+          "秒"
+        );
+      }
+      mmTracer.init();
+      mmTracer.on("pageLeave", function (pageRecord) {
+        // const diffTime = pageRecord.endTime - pageRecord.startTime;
+        console.log(pageRecord.duration);
+        console.log("页面停留时长", getfriendTime(pageRecord.duration));
+      });
+      const router = new Router();
+      router.init();
+      router.route("/", function () {
+        document.getElementById("content").innerHTML = "Home";
+      });
+      router.route("/about", function () {
+        document.getElementById("content").innerHTML = "About";
+      });
+      router.route("/topics", function () {
+        document.getElementById("content").innerHTML = "Topics";
+      });
+    </script>
+  </body>
+</html>
