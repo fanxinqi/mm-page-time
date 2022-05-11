@@ -5,10 +5,6 @@
 
 <img src="https://github.com/fanxinqi/mm-page-time/blob/main/doc/time-on-page.jpeg"  height="400" align="left" />
 
-作者：Fsn_soul
-链接：https://www.jianshu.com/p/5c1805c6f0ff
-来源：简书
-著作权归作者所有。商业转载请联系作者获得授权，非商业转载请注明出处。
 ## 兼容性
 
 - [x] pc、mobile 主流浏览器
