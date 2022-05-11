@@ -2,7 +2,12 @@
 
 **页面停留时间（Time on Page)**  简称 TP 是分析用户粘性的重要指标之一
 停留时长也可以侧面反映出网站的用户体验。平均访问时长越短，说明网站对用户的吸引力越差，可用内容信息越少。
-![](https://github.com/fanxinqi/mm-page-time/blob/main/doc/time-on-page.jpeg =400x300)
+<img src="https://github.com/fanxinqi/mm-page-time/blob/main/doc/time-on-page.jpeg" width="600" height="400" align="middle" />
+
+作者：Fsn_soul
+链接：https://www.jianshu.com/p/5c1805c6f0ff
+来源：简书
+著作权归作者所有。商业转载请联系作者获得授权，非商业转载请注明出处。
 ## 兼容性
 
 - [x] pc、mobile 主流浏览器
