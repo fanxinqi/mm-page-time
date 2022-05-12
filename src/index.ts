@@ -45,6 +45,10 @@ class MmTpTracer extends EventEmitter implements IMmTpTracer {
   }
   private initMPAPage(): void {
     window.addEventListener("beforeunload", () => {
+      // 在隐藏状态下直接关闭页面，要记录
+      if (this.unActionStartTime > 0) {
+        this.unActiveDuration = new Date().getTime() - this.unActionStartTime;
+      }
       this.setPageChangeState();
     });
   }
@@ -123,6 +127,7 @@ class MmTpTracer extends EventEmitter implements IMmTpTracer {
         this.unActionStartTime = new Date().getTime();
         Store.update(this.uniqueName, {
           unActionStartTime: this.unActionStartTime,
+          location: window.location,
         });
       } else {
         const unActionEndTime = new Date().getTime();
@@ -131,6 +136,7 @@ class MmTpTracer extends EventEmitter implements IMmTpTracer {
         Store.update(this.uniqueName, {
           unActionEndTime,
           unActiveDuration: this.unActiveDuration,
+          location: window.location,
         });
       }
     });
@@ -149,6 +155,9 @@ class MmTpTracer extends EventEmitter implements IMmTpTracer {
   private setCurrentUniqueName() {
     this.uniqueName = uuidv4();
   }
+
+  // 未实现
+  public destroy() {}
 }
 
 export default MmTpTracer;
