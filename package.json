@@ -4,11 +4,13 @@
   "description": "",
   "main": "lib/index.js",
   "scripts": {
-    "test": "test"
+    "build": "npx webpack",
+    "test": "anywhere"
   },
   "author": "fanxinqi",
   "license": "ISC",
   "dependencies": {
+    "anywhere": "^1.6.0",
     "ts-loader": "^9.3.0",
     "uuid": "^8.3.2",
     "webpack": "^5.72.0"

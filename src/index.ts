@@ -18,6 +18,7 @@ class MmTpTracer extends EventEmitter implements IMmTpTracer {
   private endTime: number = 0;
   private duration: number = 0;
   private unActionStartTime: number = 0;
+  private unActionEndTime: number = 0;
   private unActiveDuration: number = 0;
   private uniqueName: string;
   constructor() {
@@ -46,10 +47,18 @@ class MmTpTracer extends EventEmitter implements IMmTpTracer {
   private initMPAPage(): void {
     window.addEventListener("beforeunload", () => {
       // 在隐藏状态下直接关闭页面，要记录
-      if (this.unActionStartTime > 0) {
-        this.unActiveDuration = new Date().getTime() - this.unActionStartTime;
+      if (this.unActionStartTime > 0 && !this.unActionEndTime) {
+        this.unActionEndTime = new Date().getTime();
+        this.unActiveDuration = this.unActionEndTime - this.unActionStartTime;
+        Store.update(this.uniqueName, {
+          unActionEndTime: this.unActionEndTime,
+          unActiveDuration: this.unActiveDuration,
+          location: window.location,
+        });
       }
-      this.setPageChangeState();
+      if (new Date().getTime() > this.startTime) {
+        this.setPageChangeState("beforeunload");
+      }
     });
   }
   private initHistoryEvent(): void {
@@ -71,9 +80,13 @@ class MmTpTracer extends EventEmitter implements IMmTpTracer {
     this.endTime = new Date().getTime();
     this.duration = this.endTime - this.startTime;
     // const record = Store.getStore(this.uniqueName);
+   // this.duration - this.unActiveDuration < 0 fix:
     Store.update(this.uniqueName, {
       endTime: this.endTime,
-      duration: this.duration - this.unActiveDuration,
+      duration:
+        this.duration - this.unActiveDuration > 0
+          ? this.duration - this.unActiveDuration
+          : this.duration,
     });
 
     // notice pre page haven end
@@ -130,11 +143,11 @@ class MmTpTracer extends EventEmitter implements IMmTpTracer {
           location: window.location,
         });
       } else {
-        const unActionEndTime = new Date().getTime();
-        this.unActiveDuration = unActionEndTime - this.unActionStartTime;
+        this.unActionEndTime = new Date().getTime();
+        this.unActiveDuration = this.unActionEndTime - this.unActionStartTime;
         // 为啥不用this.uniqueName 无法获取当前上下文...
         Store.update(this.uniqueName, {
-          unActionEndTime,
+          unActionEndTime: this.unActionEndTime,
           unActiveDuration: this.unActiveDuration,
           location: window.location,
         });

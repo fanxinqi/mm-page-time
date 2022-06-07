@@ -39,3 +39,13 @@ function getfriendTime(timestamp) {
   );
 }
 ```
+
+## 测试
+
+```javascript
+npm run test
+
+```
+hash demo 访问地址：http://127.0.0.1:8000/test/hash
+history demo 访问地址：http://127.0.0.1:8000/test/history
+多页面 应用demo 访问地址：http://10.6.1.165:8000/test/multi-page/

@@ -8,8 +8,10 @@
 </div>
 <script src="router.js"></script>
 <script src="../../lib/index.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.29.3/moment.min.js"></script>
+<script src="../common/index.js"></script>
 <script>
-  const MMTracer = MMTP.default;
+  const MMTracer = MMPageTime.default;
   const mmTracer = new MMTracer();
 
   function getfriendTime(timestamp) {
@@ -21,11 +23,17 @@
     );
   }
   mmTracer.init();
-  mmTracer.on("pageLeave", function (pageRecord) {
-    // const diffTime = pageRecord.endTime - pageRecord.startTime;
-    console.log(pageRecord.duration);
-    console.log("页面停留时长", getfriendTime(pageRecord.duration));
+  const pageRecord2 =
+    JSON.parse(window.localStorage.getItem("time_on_page_store_name")) || {};
+
+  Object.keys(pageRecord2).forEach((key) => {
+    pageRecord2[key].id = key;
+    printLog("page-time-history:", true, pageRecord2[key]);
   });
+  mmTracer.on("pageLeave", function (pageRecord) {
+    printLog("page-time", true, pageRecord);
+  });
+
   const router = new Router();
   router.init();
   router.route("/", function () {

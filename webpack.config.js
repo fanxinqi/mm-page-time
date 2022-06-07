@@ -8,7 +8,7 @@ module.exports = {
     libraryTarget: 'umd',
     path: path.resolve(__dirname, 'lib'),
     globalObject: 'this',
-    library: 'MMTP',
+    library: 'MMPageTime',
   },
   resolve: {
     extensions: ['.tsx', '.ts', '.js'],
