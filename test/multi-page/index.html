@@ -24,42 +24,44 @@
         );
       }
       mmTracer.init();
-      const pageRecord2 =
-        JSON.parse(window.localStorage.getItem("time_on_page_store_name")) ||
-        {};
+      // const pageRecord2 =
+      //   JSON.parse(window.localStorage.getItem("time_on_page_store_name")) ||
+      //   {};
 
-      Object.keys(pageRecord2).forEach((key) => {
-        pageRecord2[key].id = key;
-        printLog("page-time-history:", true, pageRecord2[key]);
-      });
+      // // Object.keys(pageRecord2).forEach((key) => {
+      // //   pageRecord2[key].id = key;
+      // //   printLog("page-time-history:", true, pageRecord2[key]);
+      // // });
       mmTracer.on("pageLeave", function (pageRecord) {
         // const diffTime = pageRecord.endTime - pageRecord.startTime;
-
+        alert(JSON.stringify(pageRecord));
         printLog("page-time", true, pageRecord);
       });
-      window.addEventListener("load", function () {
-        console.log("load" + new Date().getTime());
-        window.localStorage.setItem(
-          "a-load",
-          JSON.stringify("load" + new Date().getTime())
-        );
-      });
-      window.addEventListener("pageshow", function () {
-        console.log("pageshow" + new Date().getTime());
-        window.localStorage.setItem(
-          "a-pageshow",
-          JSON.stringify("pageshow" + new Date().getTime())
-        );
-      });
 
-      window.addEventListener("beforeunload", () => {
-        // 在隐藏状态下直接关闭页面，要记录
-        console.log("beforeunload" + new Date().getTime());
-        window.localStorage.setItem(
-          "beforeunload",
-          JSON.stringify("beforeunload" + new Date().getTime())
-        );
-      });
+      history.pushState({page: 1}, 'title 1', '?page=1');
+      // window.addEventListener("load", function () {
+      //   console.log("load" + new Date().getTime());
+      //   window.localStorage.setItem(
+      //     "a-load",
+      //     JSON.stringify("load" + new Date().getTime())
+      //   );
+      // });
+      // window.addEventListener("pageshow", function () {
+      //   console.log("pageshow" + new Date().getTime());
+      //   window.localStorage.setItem(
+      //     "a-pageshow",
+      //     JSON.stringify("pageshow" + new Date().getTime())
+      //   );
+      // });
+
+      // window.addEventListener("beforeunload", () => {
+      //   // 在隐藏状态下直接关闭页面，要记录
+      //   console.log("beforeunload" + new Date().getTime());
+      //   window.localStorage.setItem(
+      //     "beforeunload",
+      //     JSON.stringify("beforeunload" + new Date().getTime())
+      //   );
+      // });
       // window.addEventListener("pagehide", function () {
       //   console.log("pagehide");
       //   window.localStorage.setItem("a-pagehide", JSON.stringify("pagehide"));

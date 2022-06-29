@@ -76,11 +76,13 @@ class MmTpTracer extends EventEmitter implements IMmTpTracer {
   }
 
   private setPageChangeState(type?: string) {
+    // 单页面第一次加载模版页面
+    if (!this.startTime) return;
     // pre page end time record
     this.endTime = new Date().getTime();
     this.duration = this.endTime - this.startTime;
     // const record = Store.getStore(this.uniqueName);
-   // this.duration - this.unActiveDuration < 0 fix:
+    // this.duration - this.unActiveDuration < 0 fix:
     Store.update(this.uniqueName, {
       endTime: this.endTime,
       duration:
@@ -117,12 +119,16 @@ class MmTpTracer extends EventEmitter implements IMmTpTracer {
   private initPageShow() {
     // page entry record
     window.addEventListener("pageshow", () => {
-      this.startTime = new Date().getTime();
-      this.setCurrentUniqueName();
-      Store.update(this.uniqueName, {
-        startTime: this.startTime,
-        location: window.location,
-      });
+      this.recordStart();
+    });
+  }
+
+  private recordStart() {
+    this.startTime = new Date().getTime();
+    this.setCurrentUniqueName();
+    Store.update(this.uniqueName, {
+      startTime: this.startTime,
+      location: window.location,
     });
   }
 

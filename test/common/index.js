@@ -1,6 +1,6 @@
 var consoleTableData = [];
 function printLog(platformType, isDebug, pageRecord) {
-  function ConsoleInfo(id,page, duration, startTime, endTime) {
+  function ConsoleInfo(id, page, duration, startTime, endTime) {
     this["id"] = id;
     this["页面"] = page;
     this["停留时长"] = duration;
@@ -25,8 +25,12 @@ function printLog(platformType, isDebug, pageRecord) {
         pageRecord.id,
         pageRecord.location ? pageRecord.location.href : window.location.href,
         getfriendTime(pageRecord.duration),
-        moment(pageRecord.startTime).format("YYYY-MM-DD hh:mm:ss a"),
-        moment(pageRecord.endTime).format("YYYY-MM-DD hh:mm:ss a")
+        pageRecord.startTime
+          ? moment(pageRecord.startTime).format("YYYY-MM-DD hh:mm:ss a")
+          : "",
+        pageRecord.endTime
+          ? moment(pageRecord.endTime).format("YYYY-MM-DD hh:mm:ss a")
+          : ""
       )
     );
     console.table(consoleTableData);
