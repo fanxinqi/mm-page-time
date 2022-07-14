@@ -1,11 +1,13 @@
 import { rewriteHistroy, Store, EventEmitter } from "./utils";
 import { v4 as uuidv4 } from "uuid";
+// import moment from 'moment';
 
 const TIME_ON_PANGE_STORE_NAME = "time_on_page_store_name";
 Store.storeName = TIME_ON_PANGE_STORE_NAME;
 
 interface IMmTpTracer {
   init(): void;
+
   //  send():void;
 }
 
@@ -19,15 +21,16 @@ class MmTpTracer extends EventEmitter implements IMmTpTracer {
   private duration: number = 0;
   private unActionStartTime: number = 0;
   private unActionEndTime: number = 0;
-  private unActiveDuration: number = 0;
+  private unActiveDuration: number[] = [];
   private uniqueName: string;
+
   constructor() {
     super();
   }
+
   public init(): void {
     // page entry event
     this.initPageShow();
-
     // page exit event
     // this.initPageExitEvent();
 
@@ -35,7 +38,7 @@ class MmTpTracer extends EventEmitter implements IMmTpTracer {
     this.initActiveChangeEvent();
     this.initSPAPage();
     this.initMPAPage();
-    this.on("sendSuccess", function () {
+    this.on("sendSuccess", function() {
       Store.clearAll();
     });
   }
@@ -44,12 +47,13 @@ class MmTpTracer extends EventEmitter implements IMmTpTracer {
     // this.initHashEvent();
     this.initHistoryEvent();
   }
+
   private initMPAPage(): void {
     window.addEventListener("beforeunload", () => {
       // 在隐藏状态下直接关闭页面，要记录
       if (this.unActionStartTime > 0 && !this.unActionEndTime) {
         this.unActionEndTime = new Date().getTime();
-        this.unActiveDuration = this.unActionEndTime - this.unActionStartTime;
+        this.unActiveDuration.push(this.unActionEndTime - this.unActionStartTime);
         Store.update(this.uniqueName, {
           unActionEndTime: this.unActionEndTime,
           unActiveDuration: this.unActiveDuration,
@@ -61,6 +65,7 @@ class MmTpTracer extends EventEmitter implements IMmTpTracer {
       }
     });
   }
+
   private initHistoryEvent(): void {
     window.history.pushState = rewriteHistroy("pushState");
     window.history.replaceState = rewriteHistroy("replaceState");
@@ -83,12 +88,17 @@ class MmTpTracer extends EventEmitter implements IMmTpTracer {
     this.duration = this.endTime - this.startTime;
     // const record = Store.getStore(this.uniqueName);
     // this.duration - this.unActiveDuration < 0 fix:
+    const totalUnActiveDuration = this.unActiveDuration.reduce((pre, cur) => pre + cur, 0)
     Store.update(this.uniqueName, {
       endTime: this.endTime,
       duration:
-        this.duration - this.unActiveDuration > 0
-          ? this.duration - this.unActiveDuration
+        this.duration - totalUnActiveDuration > 0
+          ? this.duration - totalUnActiveDuration
           : this.duration,
+      //某些情况下startTime和location会丢失，所以重新存一次
+      startTime: this.startTime,
+      location: window.location,
+      unActiveDuration: this.unActiveDuration,
     });
 
     // notice pre page haven end
@@ -107,6 +117,7 @@ class MmTpTracer extends EventEmitter implements IMmTpTracer {
       });
     }
   }
+
   // hash router can use popstate event
   // private initHashEvent() {
   //   window.addEventListener("hashchange", () => {
@@ -138,33 +149,50 @@ class MmTpTracer extends EventEmitter implements IMmTpTracer {
   //     this.setPageChangeState("pagehide");
   //   });
   // }
+  private handleUnActionStartTime() {
+    if (this.unActionStartTime) return
+    this.unActionStartTime = new Date().getTime();
+    this.unActionEndTime = 0
+    Store.update(this.uniqueName, {
+      unActionStartTime: this.unActionStartTime,
+      location: window.location,
+    });
+  }
+
+  private handleUnActionEndTime() {
+    if (this.unActionEndTime || !this.unActionStartTime) return
+    this.unActionEndTime = new Date().getTime();
+
+    this.unActiveDuration.push(this.unActionEndTime - this.unActionStartTime);
+    this.unActionStartTime = 0;
+    // 为啥不用this.uniqueName 无法获取当前上下文...
+    Store.update(this.uniqueName, {
+      unActionEndTime: this.unActionEndTime,
+      unActiveDuration: this.unActiveDuration,
+      location: window.location,
+    });
+  }
 
   // page active change event
   private initActiveChangeEvent() {
     window.addEventListener("visibilitychange", (event) => {
       if (document.hidden) {
-        this.unActionStartTime = new Date().getTime();
-        Store.update(this.uniqueName, {
-          unActionStartTime: this.unActionStartTime,
-          location: window.location,
-        });
-      } else {
-        this.unActionEndTime = new Date().getTime();
-        this.unActiveDuration = this.unActionEndTime - this.unActionStartTime;
-        // 为啥不用this.uniqueName 无法获取当前上下文...
-        Store.update(this.uniqueName, {
-          unActionEndTime: this.unActionEndTime,
-          unActiveDuration: this.unActiveDuration,
-          location: window.location,
-        });
+        this.handleUnActionStartTime()
       }
     });
+    window.addEventListener('focus', (e) => {
+      this.handleUnActionEndTime()
+    })
+    window.addEventListener('blur', (e) => {
+      this.handleUnActionStartTime()
+    })
   }
+
 
   // clear all
   private clean() {
     this.unActionStartTime = 0;
-    this.unActiveDuration = 0;
+    this.unActiveDuration = [];
     this.duration = 0;
     this.startTime = 0;
     this.endTime = 0;
@@ -176,7 +204,8 @@ class MmTpTracer extends EventEmitter implements IMmTpTracer {
   }
 
   // 未实现
-  public destroy() {}
+  public destroy() {
+  }
 }
 
 export default MmTpTracer;
