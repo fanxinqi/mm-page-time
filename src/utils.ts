@@ -54,10 +54,21 @@ export class Store {
       return {};
     }
   }
+  public static clear(name:string) {
+    try {
+      const storeData = Store.getALLStore();
+      return window.localStorage.removeItem(storeData[name]);
+    } catch (error) {
+      return {};
+    }
+  }
 
   public static update(name: string, value: Object) {
     try {
-      const storeData = Store.getALLStore();
+      const storeData = Store.getALLStore() || {};
+      if(Object.getOwnPropertyNames(storeData).length > 50) {
+        delete storeData[Object.keys(storeData)[0]]
+      }
       storeData[name] = Object.assign(storeData[name] || {}, value);
       // const upadeData: any = {};
       // upadeData[name] = value;

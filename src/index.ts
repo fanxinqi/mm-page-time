@@ -95,10 +95,6 @@ class MmTpTracer extends EventEmitter implements IMmTpTracer {
         this.duration - totalUnActiveDuration > 0
           ? this.duration - totalUnActiveDuration
           : this.duration,
-      //某些情况下startTime和location会丢失，所以重新存一次
-      startTime: this.startTime,
-      location: window.location,
-      unActiveDuration: this.unActiveDuration,
     });
 
     // notice pre page haven end
@@ -196,7 +192,7 @@ class MmTpTracer extends EventEmitter implements IMmTpTracer {
     this.duration = 0;
     this.startTime = 0;
     this.endTime = 0;
-    Store.clearAll();
+    Store.clear(this.uniqueName);
   }
 
   private setCurrentUniqueName() {
