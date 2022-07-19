@@ -1,6 +1,6 @@
 {
   "name": "mm-page-time",
-  "version": "1.2.1-beta",
+  "version": "1.2.2-beta",
   "description": "",
   "main": "lib/index.js",
   "scripts": {
