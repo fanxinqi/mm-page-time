@@ -7,6 +7,20 @@
     <title>A 页面</title>
 </head>
 <body>
+<script src="../../lib/index.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.29.3/moment.min.js"></script>
+<script src="../common/index.js"></script>
+<script>
+  const MMTracer = MMPageTime.default;
+  const mmTracer = new MMTracer();
+  mmTracer.init();
+  mmTracer.on("pageLeave", function (pageRecord) {
+    alert(JSON.stringify(pageRecord));
+    printLog("page-time", true, pageRecord);
+  });
+
+  history.pushState({page: 1}, 'title 1', '?page=1');
+</script>
     
 </body>
 </html>

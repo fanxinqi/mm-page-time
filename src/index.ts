@@ -39,7 +39,7 @@ class MmTpTracer extends EventEmitter implements IMmTpTracer {
     this.initSPAPage();
     this.initMPAPage();
     this.on("sendSuccess", function() {
-      Store.clearAll();
+      Store.clear(this.uniqueName);
     });
   }
 
@@ -53,10 +53,11 @@ class MmTpTracer extends EventEmitter implements IMmTpTracer {
       // 在隐藏状态下直接关闭页面，要记录
       if (this.unActionStartTime > 0 && !this.unActionEndTime) {
         this.unActionEndTime = new Date().getTime();
-        this.unActiveDuration.push(this.unActionEndTime - this.unActionStartTime);
+        const unActiveDuration = Store.getStore(this.uniqueName).unActiveDuration || []
+        unActiveDuration.push(this.unActionEndTime - this.unActionStartTime);
         Store.update(this.uniqueName, {
           unActionEndTime: this.unActionEndTime,
-          unActiveDuration: this.unActiveDuration,
+          unActiveDuration: unActiveDuration,
           location: window.location,
         });
       }
@@ -86,28 +87,24 @@ class MmTpTracer extends EventEmitter implements IMmTpTracer {
     // pre page end time record
     this.endTime = new Date().getTime();
     this.duration = this.endTime - this.startTime;
+    const unActiveDuration = Store.getStore(this.uniqueName).unActiveDuration || []
     // const record = Store.getStore(this.uniqueName);
     // this.duration - this.unActiveDuration < 0 fix:
-    const totalUnActiveDuration = this.unActiveDuration.reduce((pre, cur) => pre + cur, 0)
+    const totalUnActiveDuration = unActiveDuration.reduce((pre: number, cur: number) => pre + cur, 0)
     Store.update(this.uniqueName, {
       endTime: this.endTime,
       duration:
         this.duration - totalUnActiveDuration > 0
           ? this.duration - totalUnActiveDuration
           : this.duration,
-      //某些情况下startTime和location会丢失，所以重新存一次
-      startTime: this.startTime,
-      location: window.location,
-      unActiveDuration: this.unActiveDuration,
     });
 
     // notice pre page haven end
     const pageRecord = Store.getStore(this.uniqueName);
     if (pageRecord && this.duration > 0) {
       this.emit("pageLeave", pageRecord);
-      this.clean();
     }
-
+    this.clean();
     if (type != "beforeunload" && type != "pagehide") {
       // current page set start time record
       this.startTime = new Date().getTime();
@@ -150,26 +147,25 @@ class MmTpTracer extends EventEmitter implements IMmTpTracer {
   //   });
   // }
   private handleUnActionStartTime() {
-    if (this.unActionStartTime) return
+    const startTime = Store.getStore(this.uniqueName)?.startTime || 0
+    if (this.unActionStartTime || !startTime) return
     this.unActionStartTime = new Date().getTime();
     this.unActionEndTime = 0
     Store.update(this.uniqueName, {
       unActionStartTime: this.unActionStartTime,
-      location: window.location,
     });
   }
 
   private handleUnActionEndTime() {
     if (this.unActionEndTime || !this.unActionStartTime) return
     this.unActionEndTime = new Date().getTime();
-
-    this.unActiveDuration.push(this.unActionEndTime - this.unActionStartTime);
+    const unActiveDuration = Store.getStore(this.uniqueName).unActiveDuration || []
+    unActiveDuration.push(this.unActionEndTime - this.unActionStartTime);
     this.unActionStartTime = 0;
     // 为啥不用this.uniqueName 无法获取当前上下文...
     Store.update(this.uniqueName, {
       unActionEndTime: this.unActionEndTime,
-      unActiveDuration: this.unActiveDuration,
-      location: window.location,
+      unActiveDuration: unActiveDuration,
     });
   }
 
@@ -196,7 +192,7 @@ class MmTpTracer extends EventEmitter implements IMmTpTracer {
     this.duration = 0;
     this.startTime = 0;
     this.endTime = 0;
-    Store.clearAll();
+    Store.clear(this.uniqueName);
   }
 
   private setCurrentUniqueName() {

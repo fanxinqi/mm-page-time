@@ -54,10 +54,19 @@ export class Store {
       return {};
     }
   }
+  public static clear(name:string) {
+    try {
+      const storeData = Store.getALLStore();
+      delete storeData[name]
+      window.localStorage.setItem(this.storeName, JSON.stringify(storeData));
+    } catch (error) {
+      console.log(error)
+    }
+  }
 
   public static update(name: string, value: Object) {
     try {
-      const storeData = Store.getALLStore();
+      const storeData = Store.getALLStore() || {};
       storeData[name] = Object.assign(storeData[name] || {}, value);
       // const upadeData: any = {};
       // upadeData[name] = value;
