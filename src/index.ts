@@ -1,6 +1,6 @@
 import { rewriteHistroy, Store, EventEmitter } from "./utils";
 import { v4 as uuidv4 } from "uuid";
-// import moment from 'moment';
+import moment from "moment";
 
 const TIME_ON_PANGE_STORE_NAME = "time_on_page_store_name";
 Store.storeName = TIME_ON_PANGE_STORE_NAME;
@@ -16,12 +16,6 @@ declare interface Window {
 }
 
 class MmTpTracer extends EventEmitter implements IMmTpTracer {
-  private startTime: number = 0;
-  private endTime: number = 0;
-  private duration: number = 0;
-  private unActionStartTime: number = 0;
-  private unActionEndTime: number = 0;
-  private unActiveDuration: number[] = [];
   private uniqueName: string;
 
   constructor() {
@@ -51,17 +45,24 @@ class MmTpTracer extends EventEmitter implements IMmTpTracer {
   private initMPAPage(): void {
     window.addEventListener("beforeunload", () => {
       // 在隐藏状态下直接关闭页面，要记录
-      if (this.unActionStartTime > 0 && !this.unActionEndTime) {
-        this.unActionEndTime = new Date().getTime();
-        const unActiveDuration = Store.getStore(this.uniqueName).unActiveDuration || []
-        unActiveDuration.push(this.unActionEndTime - this.unActionStartTime);
+      const {
+        unActionStartTime = 0,
+        unActionEndTime = 0,
+        unActiveDuration = [],
+        startTime = 0
+      } = Store.getStore(this.uniqueName)
+
+      if (unActionStartTime > 0 && !unActionEndTime) {
+        const currentUnActionEndTime = new Date().getTime();
+        unActiveDuration.push(currentUnActionEndTime - unActionStartTime);
         Store.update(this.uniqueName, {
-          unActionEndTime: this.unActionEndTime,
-          unActiveDuration: unActiveDuration,
+          unActionEndTime: currentUnActionEndTime,
+          unActiveDuration,
           location: window.location,
+          unActionStartTime: 0,
         });
       }
-      if (new Date().getTime() > this.startTime) {
+      if (new Date().getTime() > startTime) {
         this.setPageChangeState("beforeunload");
       }
     });
@@ -82,34 +83,30 @@ class MmTpTracer extends EventEmitter implements IMmTpTracer {
   }
 
   private setPageChangeState(type?: string) {
+    const { startTime = 0, unActiveDuration = [] } = Store.getStore(this.uniqueName)
     // 单页面第一次加载模版页面
-    if (!this.startTime) return;
-    // pre page end time record
-    this.endTime = new Date().getTime();
-    this.duration = this.endTime - this.startTime;
-    const unActiveDuration = Store.getStore(this.uniqueName).unActiveDuration || []
-    // const record = Store.getStore(this.uniqueName);
-    // this.duration - this.unActiveDuration < 0 fix:
+    if (!startTime) return;
+    const currentEndTime = new Date().getTime()
+    const duration = currentEndTime - startTime;
     const totalUnActiveDuration = unActiveDuration.reduce((pre: number, cur: number) => pre + cur, 0)
     Store.update(this.uniqueName, {
-      endTime: this.endTime,
+      endTime: currentEndTime,
       duration:
-        this.duration - totalUnActiveDuration > 0
-          ? this.duration - totalUnActiveDuration
-          : this.duration,
+        duration - totalUnActiveDuration > 0
+          ? duration - totalUnActiveDuration
+          : duration,
     });
 
     // notice pre page haven end
     const pageRecord = Store.getStore(this.uniqueName);
-    if (pageRecord && this.duration > 0) {
+    if (pageRecord && duration > 0) {
       this.emit("pageLeave", pageRecord);
     }
     this.clean();
     if (type != "beforeunload" && type != "pagehide") {
       // current page set start time record
-      this.startTime = new Date().getTime();
       Store.update(this.uniqueName, {
-        startTime: this.startTime,
+        startTime: new Date().getTime(),
         location: window.location,
       });
     }
@@ -132,10 +129,9 @@ class MmTpTracer extends EventEmitter implements IMmTpTracer {
   }
 
   private recordStart() {
-    this.startTime = new Date().getTime();
     this.setCurrentUniqueName();
     Store.update(this.uniqueName, {
-      startTime: this.startTime,
+      startTime: new Date().getTime(),
       location: window.location,
     });
   }
@@ -147,25 +143,24 @@ class MmTpTracer extends EventEmitter implements IMmTpTracer {
   //   });
   // }
   private handleUnActionStartTime() {
-    const startTime = Store.getStore(this.uniqueName)?.startTime || 0
-    if (this.unActionStartTime || !startTime) return
-    this.unActionStartTime = new Date().getTime();
-    this.unActionEndTime = 0
+    const { startTime = 0, unActionStartTime = 0, } = Store.getStore(this.uniqueName)
+    if (unActionStartTime || !startTime) return
     Store.update(this.uniqueName, {
-      unActionStartTime: this.unActionStartTime,
+      unActionStartTime: new Date().getTime(),
+      unActionEndTime: 0,
     });
   }
 
   private handleUnActionEndTime() {
-    if (this.unActionEndTime || !this.unActionStartTime) return
-    this.unActionEndTime = new Date().getTime();
-    const unActiveDuration = Store.getStore(this.uniqueName).unActiveDuration || []
-    unActiveDuration.push(this.unActionEndTime - this.unActionStartTime);
-    this.unActionStartTime = 0;
+    const { unActionEndTime = 0, unActionStartTime = 0, unActiveDuration = [] } = Store.getStore(this.uniqueName)
+    if (unActionEndTime || !unActionStartTime) return
+    const currentUnActionEndTime = new Date().getTime()
+    unActiveDuration.push(currentUnActionEndTime - unActionStartTime);
     // 为啥不用this.uniqueName 无法获取当前上下文...
     Store.update(this.uniqueName, {
-      unActionEndTime: this.unActionEndTime,
+      unActionEndTime: currentUnActionEndTime,
       unActiveDuration: unActiveDuration,
+      unActionStartTime: 0,
     });
   }
 
@@ -187,11 +182,6 @@ class MmTpTracer extends EventEmitter implements IMmTpTracer {
 
   // clear all
   private clean() {
-    this.unActionStartTime = 0;
-    this.unActiveDuration = [];
-    this.duration = 0;
-    this.startTime = 0;
-    this.endTime = 0;
     Store.clear(this.uniqueName);
   }
 
