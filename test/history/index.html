@@ -12,27 +12,34 @@
 <script src="../common/index.js"></script>
 <script>
   const MMTracer = MMPageTime.default;
-  const mmTracer = new MMTracer();
+      const mmTracer = new MMTracer();
 
-  function getfriendTime(timestamp) {
-    return (
-      Math.floor(timestamp / 1000 / 60) +
-      "分" +
-      ((timestamp / 1000) % 60) +
-      "秒"
-    );
-  }
-  mmTracer.init();
-  const pageRecord2 =
-    JSON.parse(window.localStorage.getItem("time_on_page_store_name")) || {};
+      function getfriendTime(timestamp) {
+        return (
+          Math.floor(timestamp / 1000 / 60) +
+          "分" +
+          ((timestamp / 1000) % 60) +
+          "秒"
+        );
+      }
+      mmTracer.init();
+      function consoleTimeTable() {
+        const pageRecord2 =
+          JSON.parse(window.localStorage.getItem("time_on_page_store_name")) ||
+          {};
+        Object.keys(pageRecord2).forEach((key) => {
+          const result = pageRecord2[key];
+          result.id = key;
+          printLog("page-time-history:", true, result);
+        });
+      }
 
-  Object.keys(pageRecord2).forEach((key) => {
-    pageRecord2[key].id = key;
-    printLog("page-time-history:", true, pageRecord2[key]);
-  });
-  mmTracer.on("pageLeave", function (pageRecord) {
-    printLog("page-time", true, pageRecord);
-  });
+      mmTracer.on("pageLeave", function (pageRecord) {
+        console.log(pageRecord);
+        // const diffTime = pageRecord.endTime - pageRecord.startTime;
+        // printLog("page-time", true, pageRecord);
+        consoleTimeTable();
+      });
 
   const router = new Router();
   router.init();
