@@ -38,7 +38,7 @@ class MmTpTracer extends EventEmitter implements IMmTpTracer {
     this.initActiveChangeEvent();
     this.initSPAPage();
     this.initMPAPage();
-    this.on("sendSuccess", function() {
+    this.on("sendSuccess", function () {
       Store.clear(this.uniqueName);
     });
   }
@@ -53,7 +53,8 @@ class MmTpTracer extends EventEmitter implements IMmTpTracer {
       // 在隐藏状态下直接关闭页面，要记录
       if (this.unActionStartTime > 0 && !this.unActionEndTime) {
         this.unActionEndTime = new Date().getTime();
-        const unActiveDuration = Store.getStore(this.uniqueName).unActiveDuration || []
+        const unActiveDuration =
+          Store.getStore(this.uniqueName).unActiveDuration || [];
         unActiveDuration.push(this.unActionEndTime - this.unActionStartTime);
         Store.update(this.uniqueName, {
           unActionEndTime: this.unActionEndTime,
@@ -87,10 +88,14 @@ class MmTpTracer extends EventEmitter implements IMmTpTracer {
     // pre page end time record
     this.endTime = new Date().getTime();
     this.duration = this.endTime - this.startTime;
-    const unActiveDuration = Store.getStore(this.uniqueName).unActiveDuration || []
+    const unActiveDuration =
+      Store.getStore(this.uniqueName).unActiveDuration || [];
     // const record = Store.getStore(this.uniqueName);
     // this.duration - this.unActiveDuration < 0 fix:
-    const totalUnActiveDuration = unActiveDuration.reduce((pre: number, cur: number) => pre + cur, 0)
+    const totalUnActiveDuration = unActiveDuration.reduce(
+      (pre: number, cur: number) => pre + cur,
+      0
+    );
     Store.update(this.uniqueName, {
       endTime: this.endTime,
       duration:
@@ -101,17 +106,21 @@ class MmTpTracer extends EventEmitter implements IMmTpTracer {
 
     // notice pre page haven end
     const pageRecord = Store.getStore(this.uniqueName);
+    const oldUniqueName = this.uniqueName;
     if (pageRecord && this.duration > 0) {
-      this.emit("pageLeave", pageRecord);
+      this.emit("pageLeave", { id: this.uniqueName, ...pageRecord });
     }
     this.clean();
     if (type != "beforeunload" && type != "pagehide") {
       // current page set start time record
-      this.startTime = new Date().getTime();
-      Store.update(this.uniqueName, {
-        startTime: this.startTime,
-        location: window.location,
-      });
+      this.recordStart(pageRecord?.location?.href || "", oldUniqueName || "");
+      // this.startTime = new Date().getTime();
+      // Store.update(this.uniqueName, {
+      //   startTime: this.startTime,
+      //   location: window.location,
+      //   referer: pageRecord?.location?.href || "",
+      //   refererId: oldUniqueName || "",
+      // });
     }
   }
 
@@ -131,12 +140,14 @@ class MmTpTracer extends EventEmitter implements IMmTpTracer {
     });
   }
 
-  private recordStart() {
+  private recordStart(referer?: string, refererId?: string) {
     this.startTime = new Date().getTime();
     this.setCurrentUniqueName();
     Store.update(this.uniqueName, {
       startTime: this.startTime,
       location: window.location,
+      referer,
+      refererId,
     });
   }
 
@@ -147,19 +158,20 @@ class MmTpTracer extends EventEmitter implements IMmTpTracer {
   //   });
   // }
   private handleUnActionStartTime() {
-    const startTime = Store.getStore(this.uniqueName)?.startTime || 0
-    if (this.unActionStartTime || !startTime) return
+    const startTime = Store.getStore(this.uniqueName)?.startTime || 0;
+    if (this.unActionStartTime || !startTime) return;
     this.unActionStartTime = new Date().getTime();
-    this.unActionEndTime = 0
+    this.unActionEndTime = 0;
     Store.update(this.uniqueName, {
       unActionStartTime: this.unActionStartTime,
     });
   }
 
   private handleUnActionEndTime() {
-    if (this.unActionEndTime || !this.unActionStartTime) return
+    if (this.unActionEndTime || !this.unActionStartTime) return;
     this.unActionEndTime = new Date().getTime();
-    const unActiveDuration = Store.getStore(this.uniqueName).unActiveDuration || []
+    const unActiveDuration =
+      Store.getStore(this.uniqueName).unActiveDuration || [];
     unActiveDuration.push(this.unActionEndTime - this.unActionStartTime);
     this.unActionStartTime = 0;
     // 为啥不用this.uniqueName 无法获取当前上下文...
@@ -173,17 +185,16 @@ class MmTpTracer extends EventEmitter implements IMmTpTracer {
   private initActiveChangeEvent() {
     window.addEventListener("visibilitychange", (event) => {
       if (document.hidden) {
-        this.handleUnActionStartTime()
+        this.handleUnActionStartTime();
       }
     });
-    window.addEventListener('focus', (e) => {
-      this.handleUnActionEndTime()
-    })
-    window.addEventListener('blur', (e) => {
-      this.handleUnActionStartTime()
-    })
+    window.addEventListener("focus", (e) => {
+      this.handleUnActionEndTime();
+    });
+    window.addEventListener("blur", (e) => {
+      this.handleUnActionStartTime();
+    });
   }
-
 
   // clear all
   private clean() {
@@ -200,8 +211,7 @@ class MmTpTracer extends EventEmitter implements IMmTpTracer {
   }
 
   // 未实现
-  public destroy() {
-  }
+  public destroy() {}
 }
 
 export default MmTpTracer;

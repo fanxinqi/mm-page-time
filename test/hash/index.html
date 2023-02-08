@@ -39,19 +39,22 @@
         );
       }
       mmTracer.init();
-
-      const pageRecord2 =
-        JSON.parse(window.localStorage.getItem("time_on_page_store_name")) ||
-        {};
-
-      Object.keys(pageRecord2).forEach((key) => {
-        pageRecord2[key].id= key;
-        printLog("page-time-history:", true, pageRecord2[key]);
-      });
+      function consoleTimeTable() {
+        const pageRecord2 =
+          JSON.parse(window.localStorage.getItem("time_on_page_store_name")) ||
+          {};
+        Object.keys(pageRecord2).forEach((key) => {
+          const result = pageRecord2[key];
+          result.id = key;
+          printLog("page-time-history:", true, result);
+        });
+      }
 
       mmTracer.on("pageLeave", function (pageRecord) {
+        console.log(pageRecord);
         // const diffTime = pageRecord.endTime - pageRecord.startTime;
-        printLog("page-time", true, pageRecord);
+        // printLog("page-time", true, pageRecord);
+        consoleTimeTable();
       });
       const router = new Router();
       router.init();
